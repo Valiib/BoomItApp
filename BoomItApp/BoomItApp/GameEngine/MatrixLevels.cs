@@ -3,35 +3,41 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 namespace BoomItApp.GameEngine
 {
-    public class MatrixLevels<T> where T : Unit ,new()
+    public class MatrixLevels<T> where T : Unit, new()
     {
 
-        public static  ObservableCollection<T> OrderedUnitsEngine { get; set; } = new ObservableCollection<T>();
+        public static ObservableCollection<T> OrderedUnitsEngine { get; set; } = new ObservableCollection<T>();
 
-        public static List<int> GamePattern = new List<int>() {
-                                                        1, 0, 0, 1, 0, 0, 1,
-                                                        0, 1, 0, 1, 0, 1, 0,
-                                                        0, 0, 1, 1, 1, 0, 0,
-                                                        1, 1, 1, 0, 1, 1, 1,
-                                                        0, 0, 1, 1, 1, 0, 0,
-                                                        0, 1, 0, 1, 0, 1, 0,
-                                                        1, 0, 0, 1, 0, 0, 1 };
+        public static List<int> GamePattern = new List<int>()
+        {
+            1, 0, 0, 1, 0, 0, 1,
+            0, 1, 0, 1, 0, 1, 0,
+            0, 0, 1, 1, 1, 0, 0,
+            1, 1, 1, 0, 1, 1, 1,
+            0, 0, 1, 1, 1, 0, 0,
+            0, 1, 0, 1, 0, 1, 0,
+            1, 0, 0, 1, 0, 0, 1
+        };
+
         public T[,,] Matrix { get; set; }
 
-        public bool KillUnit(int side,int index,ObservableCollection<T> matrixUnits)
+        public bool KillUnit(int side, int index, ObservableCollection<T> matrixUnits)
         {
 
-            if (matrixUnits[index].Side == side && !CheckForTriplet(side,index, matrixUnits))
+            if (matrixUnits[index].Side == side && !CheckForTriplet(side, index, matrixUnits))
             {
                 return true;
             }
+
             return false;
         }
+
         public bool CheckForTriplet(int side, int index, ObservableCollection<T> matrixUnits)
         {
             var position = matrixUnits[index].Position;
@@ -39,14 +45,19 @@ namespace BoomItApp.GameEngine
             {
                 if (position.y == 1 && position.MatrixLevel == 0)
                 {
-                    if (matrixUnits.First(unit => unit.Position.x == position.x && unit.Position.y == position.y + 1 && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x && unit.Position.y == position.y + 1 &&
+                            unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x && unit.Position.y == position.y - 1 &&
                                 unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                             return true;
                     }
-                    if (matrixUnits.First(unit => unit.Position.x == position.x && unit.Position.y == position.y && unit.Position.MatrixLevel == position.MatrixLevel + 1).Side == side)
+
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel + 1).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x && unit.Position.y == position.y &&
@@ -56,16 +67,22 @@ namespace BoomItApp.GameEngine
                         }
                     }
                 }
+
                 if (position.x == 1 && position.MatrixLevel == 0)
                 {
-                    if (matrixUnits.First(unit => unit.Position.x == position.x + 1 && unit.Position.y == position.y  && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x + 1 && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                     {
                         if (matrixUnits.First(unit =>
-                                unit.Position.x == position.x - 1 && unit.Position.y == position.y  &&
+                                unit.Position.x == position.x - 1 && unit.Position.y == position.y &&
                                 unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                             return true;
                     }
-                    if (matrixUnits.First(unit => unit.Position.x == position.x && unit.Position.y == position.y && unit.Position.MatrixLevel == position.MatrixLevel + 1).Side == side)
+
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel + 1).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x && unit.Position.y == position.y &&
@@ -78,14 +95,19 @@ namespace BoomItApp.GameEngine
 
                 if (position.y == 1 && position.MatrixLevel == 1)
                 {
-                    if (matrixUnits.First(unit => unit.Position.x == position.x && unit.Position.y == position.y + 1 && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x && unit.Position.y == position.y + 1 &&
+                            unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x && unit.Position.y == position.y - 1 &&
                                 unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                             return true;
                     }
-                    if (matrixUnits.First(unit => unit.Position.x == position.x && unit.Position.y == position.y && unit.Position.MatrixLevel == position.MatrixLevel + 1).Side == side)
+
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel + 1).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x && unit.Position.y == position.y &&
@@ -95,16 +117,22 @@ namespace BoomItApp.GameEngine
                         }
                     }
                 }
+
                 if (position.x == 1 && position.MatrixLevel == 1)
                 {
-                    if (matrixUnits.First(unit => unit.Position.x == position.x + 1 && unit.Position.y == position.y  && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x + 1 && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                     {
                         if (matrixUnits.First(unit =>
-                                unit.Position.x == position.x - 1 && unit.Position.y == position.y  &&
+                                unit.Position.x == position.x - 1 && unit.Position.y == position.y &&
                                 unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                             return true;
                     }
-                    if (matrixUnits.First(unit => unit.Position.x == position.x && unit.Position.y == position.y && unit.Position.MatrixLevel == position.MatrixLevel + 1).Side == side)
+
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel + 1).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x && unit.Position.y == position.y &&
@@ -117,14 +145,19 @@ namespace BoomItApp.GameEngine
 
                 if (position.y == 1 && position.MatrixLevel == 2)
                 {
-                    if (matrixUnits.First(unit => unit.Position.x == position.x && unit.Position.y == position.y + 1 && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x && unit.Position.y == position.y + 1 &&
+                            unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x && unit.Position.y == position.y - 1 &&
                                 unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                             return true;
                     }
-                    if (matrixUnits.First(unit => unit.Position.x == position.x && unit.Position.y == position.y && unit.Position.MatrixLevel == position.MatrixLevel - 1).Side == side)
+
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel - 1).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x && unit.Position.y == position.y &&
@@ -134,16 +167,22 @@ namespace BoomItApp.GameEngine
                         }
                     }
                 }
+
                 if (position.x == 1 && position.MatrixLevel == 2)
                 {
-                    if (matrixUnits.First(unit => unit.Position.x == position.x + 1 && unit.Position.y == position.y && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x + 1 && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x - 1 && unit.Position.y == position.y &&
                                 unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                             return true;
                     }
-                    if (matrixUnits.First(unit => unit.Position.x == position.x && unit.Position.y == position.y && unit.Position.MatrixLevel == position.MatrixLevel - 1).Side == side)
+
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel - 1).Side == side)
                     {
                         if (matrixUnits.First(unit =>
                                 unit.Position.x == position.x && unit.Position.y == position.y &&
@@ -175,21 +214,30 @@ namespace BoomItApp.GameEngine
 
                 if (position.x == 2)
                 {
-                  
-                    if (matrixUnits.First(unit => unit.Position.x == position.x - 1 && unit.Position.y == position.y && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+
+                    if (matrixUnits.First(unit =>
+                            unit.Position.x == position.x - 1 && unit.Position.y == position.y &&
+                            unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                     {
-                        if (matrixUnits.First(unit => unit.Position.x == position.x - 2 && unit.Position.y == position.y && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                        if (matrixUnits.First(unit =>
+                                unit.Position.x == position.x - 2 && unit.Position.y == position.y &&
+                                unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                         {
                             return true;
                         }
                     }
                 }
+
                 // 0 0 X Vertical
                 if (position.y == 0)
                 {
-                    if (matrixUnits.First(unit => unit.Position.y == position.y + 1 && unit.Position.x == position.x && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                    if (matrixUnits.First(unit =>
+                            unit.Position.y == position.y + 1 && unit.Position.x == position.x &&
+                            unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                     {
-                        if (matrixUnits.First(unit => unit.Position.y == position.y + 2 && unit.Position.x == position.x && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                        if (matrixUnits.First(unit =>
+                                unit.Position.y == position.y + 2 && unit.Position.x == position.x &&
+                                unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                         {
                             return true;
                         }
@@ -198,9 +246,13 @@ namespace BoomItApp.GameEngine
 
                 if (position.y == 2)
                 {
-                    if (matrixUnits.First(unit => unit.Position.y == position.y - 1 && unit.Position.x == position.x && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                    if (matrixUnits.First(unit =>
+                            unit.Position.y == position.y - 1 && unit.Position.x == position.x &&
+                            unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                     {
-                        if (matrixUnits.First(unit => unit.Position.y == position.y - 2 && unit.Position.x == position.x && unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
+                        if (matrixUnits.First(unit =>
+                                unit.Position.y == position.y - 2 && unit.Position.x == position.x &&
+                                unit.Position.MatrixLevel == position.MatrixLevel).Side == side)
                         {
                             return true;
                         }
@@ -216,7 +268,7 @@ namespace BoomItApp.GameEngine
 
         public T[,,] GenerateMatrix(T[,,] matrix)
         {
-            var gameBoard = new T[3,3,3];
+            var gameBoard = new T[3, 3, 3];
             var countProcess = 0;
 
 
@@ -224,11 +276,13 @@ namespace BoomItApp.GameEngine
             var z = 0;
             var y = 0;
 
-            foreach (var state in GamePattern) {
+            foreach (var state in GamePattern)
+            {
 
                 if (state == 1)
                 {
-                    var orderItem = new T { Position = new Position { x = x, MatrixLevel = z, y = y }, Side = 0 , Index = countProcess};
+                    var orderItem = new T
+                        {Position = new Position {x = x, MatrixLevel = z, y = y}, Side = 0, Index = countProcess};
                     OrderedUnitsEngine.Add(orderItem);
                     gameBoard[x, z, y] = orderItem;
                     var nextPattern = GiveNextPattern(x, z, y, countProcess);
@@ -236,17 +290,17 @@ namespace BoomItApp.GameEngine
                     y = nextPattern[2];
                     z = nextPattern[1];
                     countProcess++;
-                  
+
                 }
-                
+
             }
-            
+
             return gameBoard;
         }
 
-        public static List<int> GiveNextPattern(int x, int z, int y,int countProcess)
+        public static List<int> GiveNextPattern(int x, int z, int y, int countProcess)
         {
-   
+
             if (countProcess >= 0 && countProcess < 2)
             {
                 x++;
@@ -279,6 +333,7 @@ namespace BoomItApp.GameEngine
             {
                 x++;
             }
+
             if (countProcess == 2)
             {
                 z = 1;
@@ -316,8 +371,107 @@ namespace BoomItApp.GameEngine
                 x = 0;
             }
 
-          
-            return  new List<int>(){x,z,y};
+
+            return new List<int>() {x, z, y};
+        }
+
+
+        public ObservableCollection<T> UnFireMove(ObservableCollection<T> matrixUnits)
+        {
+            var resultItems = new ObservableCollection<T>();
+            foreach (var firedUnit in matrixUnits)
+            {
+                if (firedUnit.Side == 3)
+                {
+                    firedUnit.Side = 0;
+                }
+                resultItems.Add(firedUnit);
+            }
+
+            return resultItems;
+        }
+
+        public ObservableCollection<T> FireMoveOptions(int p0, int index, ObservableCollection<T> matrixUnits)
+        {
+            var changedOccurences = new ObservableCollection<T>();
+            var currentPosition = matrixUnits[index].Position;
+            if (matrixUnits.Count(x => x.Side == p0) == 3)
+            {
+                foreach (var unit in matrixUnits)
+                {
+                    if (unit.Side == 0)
+                    {
+                        unit.Side = 3;
+                        changedOccurences.Add(unit);
+                    }
+                }
+
+                return changedOccurences;
+            }
+
+            var checkUnit = matrixUnits.FirstOrDefault(unit =>
+                unit.Position.x == currentPosition.x + 1 && unit.Position.y == currentPosition.y &&
+                unit.Position.MatrixLevel == currentPosition.MatrixLevel);
+            if (checkUnit != null && checkUnit.Side == 0)
+            {
+                checkUnit.Side = 3;
+                changedOccurences.Add(checkUnit);
+            }
+
+
+            checkUnit = matrixUnits.FirstOrDefault(unit =>
+                unit.Position.x == currentPosition.x - 1 && unit.Position.y == currentPosition.y &&
+                unit.Position.MatrixLevel == currentPosition.MatrixLevel);
+            if (checkUnit != null && checkUnit.Side == 0)
+            {
+                checkUnit.Side = 3;
+                changedOccurences.Add(checkUnit);
+            }
+
+
+            checkUnit = matrixUnits.FirstOrDefault(unit =>
+                unit.Position.x == currentPosition.x && unit.Position.y == currentPosition.y + 1 &&
+                unit.Position.MatrixLevel == currentPosition.MatrixLevel);
+            if (checkUnit != null && checkUnit.Side == 0)
+            {
+                checkUnit.Side = 3;
+                changedOccurences.Add(checkUnit);
+            }
+
+            checkUnit =
+                 matrixUnits.FirstOrDefault(unit =>
+                    unit.Position.x == currentPosition.x && unit.Position.y == currentPosition.y - 1 &&
+                    unit.Position.MatrixLevel == currentPosition.MatrixLevel);
+            if (checkUnit != null && checkUnit.Side == 0)
+            {
+                checkUnit.Side = 3;
+                changedOccurences.Add(checkUnit);
+            }
+
+
+            if (currentPosition.x == 1 || currentPosition.y == 1)
+            {
+                checkUnit =
+                     matrixUnits.FirstOrDefault(unit =>
+                        unit.Position.x == currentPosition.x && unit.Position.y == currentPosition.y  &&
+                        unit.Position.MatrixLevel == currentPosition.MatrixLevel + 1 );
+                if (checkUnit != null && checkUnit.Side == 0)
+                {
+                    checkUnit.Side = 3;
+                    changedOccurences.Add(checkUnit);
+                }
+                checkUnit =
+                      matrixUnits.FirstOrDefault(unit =>
+                        unit.Position.x == currentPosition.x && unit.Position.y == currentPosition.y &&
+                        unit.Position.MatrixLevel == currentPosition.MatrixLevel - 1);
+                if (checkUnit != null && checkUnit.Side == 0)
+                {
+                    checkUnit.Side = 3;
+                    changedOccurences.Add(checkUnit);
+                }
+            }
+
+            return changedOccurences;
         }
     }
 }

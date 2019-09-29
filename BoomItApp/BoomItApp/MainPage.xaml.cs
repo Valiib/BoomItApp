@@ -10,6 +10,7 @@ using BoomItApp.GameEngine;
 using BoomItApp.Model;
 using BoomItApp.ViewModel;
 using Xamarin.Forms;
+using Unit = BoomItApp.Model.Unit;
 
 namespace BoomItApp
 {
@@ -18,6 +19,7 @@ namespace BoomItApp
     [DesignTimeVisible(false)]
     public partial class MainPage : ContentPage
     {
+        public bool IsMoveState { get; set; }
         public bool IsKillState { get; set; }
         public int PlayCounter { get; set; }
         public bool IsFirstPlayer { get; set; }
@@ -91,86 +93,146 @@ namespace BoomItApp
         void UserTurn(object sender, EventArgs e)
         {
             var index = GetIndexByPosition(sender);
-            if (!IsKillState)
+            if (!IsMoveState)
             {
-                if (PlayCounter < 18)
+                if (!IsKillState)
                 {
-                    if (ViewModel.OrderedUnits[index].Side == 0)
+                    if (PlayCounter < 18)
                     {
-                 
+                        if (ViewModel.OrderedUnits[index].Side == 0)
+                        {
+                            if (IsFirstPlayer)
+                            {
+                                ViewModel.OrderedUnits[index].Side = 1;
+                                IsFirstPlayer = false;
+                            }
+                            else
+                            {
+                                ViewModel.OrderedUnits[index].Side = 2;
+                                IsFirstPlayer = true;
+                            }
+
+                            if (ViewModel.CheckForTriplet(ViewModel.OrderedUnits[index].Side, index,
+                                ViewModel.OrderedUnits))
+                            {
+                                IsKillState = true;
+                            }
+
+                            PlayCounter++;
+                        }
+                    }
+                    else
+                    {
 
                         if (IsFirstPlayer)
                         {
-                            ViewModel.OrderedUnits[index].Side = 1;
-                            IsFirstPlayer = false;
+                            if (ViewModel.OrderedUnits[index].Side == 1)
+                            {
+                                var check = ViewModel.FireMoveOptions(1, index, ViewModel.OrderedUnits);
+                                MovingUnit = ViewModel.OrderedUnits[index];
+                                IsMoveState = true;
+                            }
                         }
                         else
                         {
-                            ViewModel.OrderedUnits[index].Side = 2;
-                            IsFirstPlayer = true;
+                            if (ViewModel.OrderedUnits[index].Side == 2)
+                            {
+                                ViewModel.FireMoveOptions(1, index, ViewModel.OrderedUnits);
+                                MovingUnit = ViewModel.OrderedUnits[index];
+                                IsMoveState = true;
+                            }
                         }
-
-                        if (ViewModel.CheckForTriplet(ViewModel.OrderedUnits[index].Side, index,
-                            ViewModel.OrderedUnits))
-                        {
-                            IsKillState = true;
-                        }
-
-                        PlayCounter++;
                     }
+
                 }
                 else
                 {
-                   
                     if (IsFirstPlayer)
                     {
                         if (ViewModel.OrderedUnits[index].Side == 1)
                         {
-                            //FireMoveOptions(1, index, ViewModel.OrderedUnits);
+                            if (ViewModel.KillUnit(1, index, ViewModel.OrderedUnits))
+                            {
+                                ViewModel.OrderedUnits[index].Side = 0;
+                                IsKillState = false;
+                                if (PlayCounter > 18)
+                                {
+                                    IsMoveState = true;
+                                    CheckDeath();
+                                }
+                              
+                                
+                            }
                         }
                     }
                     else
                     {
                         if (ViewModel.OrderedUnits[index].Side == 2)
                         {
-                            //FireMoveOptions(1, index, ViewModel.OrderedUnits);
+                            if (ViewModel.KillUnit(2, index, ViewModel.OrderedUnits))
+                            {
+                                ViewModel.OrderedUnits[index].Side = 0;
+                                IsKillState = false;
+                                if (PlayCounter > 18)
+                                {
+                                    IsMoveState = true;
+                                }
+                            }
                         }
                     }
                 }
-               
             }
             else
-            { 
-
-                if (IsFirstPlayer)
+            {
+                if (ViewModel.OrderedUnits[index].Side == 3)
                 {
-                    if (ViewModel.OrderedUnits[index].Side == 1)
+                    var oldSide = ViewModel.OrderedUnits[MovingUnit.Index].Side;
+                    ViewModel.OrderedUnits[MovingUnit.Index].Side = 0;
+                    ViewModel.OrderedUnits[index].Side = oldSide;
+                    IsMoveState = false;
+
+
+                    if (IsFirstPlayer)
                     {
-                        if (ViewModel.KillUnit(1, index, ViewModel.OrderedUnits))
-                        {
-                            ViewModel.OrderedUnits[index].Side = 0;
-                            IsKillState = false;
-                            //CheckDeath();
-                        }
+                        IsFirstPlayer = false;
                     }
+                    else
+                    {
+                        IsFirstPlayer = true;
+                    }
+
+                
+
+                    if (ViewModel.CheckForTriplet(ViewModel.OrderedUnits[index].Side, index,
+                        ViewModel.OrderedUnits))
+                    {
+                        IsKillState = true;
+                    }
+                    ViewModel.OrderedUnits = ViewModel.UnFireMove(ViewModel.OrderedUnits);
                 }
                 else
                 {
-                    if (ViewModel.OrderedUnits[index].Side == 2)
-                    {
-                        if (ViewModel.KillUnit(2, index, ViewModel.OrderedUnits))
-                        {
-                            ViewModel.OrderedUnits[index].Side = 0;
-                          
-                           
-                            IsKillState = false;
-                        }
-                    }
+                    ViewModel.OrderedUnits = ViewModel.UnFireMove(ViewModel.OrderedUnits);
+                    IsMoveState = false;
                 }
-
-               
             }
         }
+
+        private void CheckDeath()
+        {
+            if (ViewModel.OrderedUnits.Count(x => x.Side == 1) <= 2)
+            {
+                DisplayAlert("Player 2 won!","","ok");
+            }
+
+            if (ViewModel.OrderedUnits.Count(x => x.Side == 2) <= 2)
+            {
+                DisplayAlert("Player 1", "", "Won");
+            }
+        }
+
+        public Unit MovingUnit { get; set; }
+
 
         private int GetIndexByPosition(object sender)
         {

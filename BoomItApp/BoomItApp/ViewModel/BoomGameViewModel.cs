@@ -31,6 +31,7 @@ namespace BoomItApp.ViewModel
             OrderedUnits[selectedBox.Index].Side = 1;
         }
 
-        
+
+     
     }
 }

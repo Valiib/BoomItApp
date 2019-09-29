@@ -9,7 +9,7 @@ namespace BoomItApp.Model
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public static List<Color> Colors = new List<Color>() { Color.Gray, Color.DarkSalmon, Color.Aquamarine };
+        public static List<Color> Colors = new List<Color>() { Color.Gray, Color.DarkSalmon, Color.Aquamarine ,Color.IndianRed };
       
         private int _side { get; set; }
         public override int Side { get {return _side; } set {
