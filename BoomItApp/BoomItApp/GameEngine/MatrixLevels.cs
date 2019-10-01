@@ -29,14 +29,52 @@ namespace BoomItApp.GameEngine
 
         public bool KillUnit(int side, int index, ObservableCollection<T> matrixUnits)
         {
-
-            if (matrixUnits[index].Side == side && !CheckForTriplet(side, index, matrixUnits))
+            var killTriplets = true;
+            foreach (var unit in matrixUnits.Where(x => x.Side == side).ToList())
             {
-                return true;
+                if (!CheckForTriplet(side, unit.Index, matrixUnits))
+                {
+                    killTriplets = false;
+                }
             }
 
+            if (killTriplets)
+            {
+                if (matrixUnits[index].Side == side)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (matrixUnits[index].Side == side && !CheckForTriplet(side, index, matrixUnits))
+                {
+                    return true;
+                }
+            }
+
+
+            return false;
+
+        }
+
+
+
+
+        public bool EndMoveGame(int side,ObservableCollection<T> matrixUnits)
+        {
+
+            foreach (var unit in matrixUnits.Where(x => x.Side == side))
+            {
+                if (FireMoveOptions(side, unit.Index,matrixUnits).Count > 0)
+                {
+                    UnFireMove(matrixUnits);
+                    return true;
+                }
+            }
             return false;
         }
+
 
         public bool CheckForTriplet(int side, int index, ObservableCollection<T> matrixUnits)
         {

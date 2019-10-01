@@ -137,7 +137,7 @@ namespace BoomItApp
                         {
                             if (ViewModel.OrderedUnits[index].Side == 2)
                             {
-                                ViewModel.FireMoveOptions(1, index, ViewModel.OrderedUnits);
+                                ViewModel.FireMoveOptions(2, index, ViewModel.OrderedUnits);
                                 MovingUnit = ViewModel.OrderedUnits[index];
                                 IsMoveState = true;
                             }
@@ -155,7 +155,7 @@ namespace BoomItApp
                             {
                                 ViewModel.OrderedUnits[index].Side = 0;
                                 IsKillState = false;
-                                if (PlayCounter > 18)
+                                if (PlayCounter >= 18)
                                 {
                                     IsMoveState = true;
                                     CheckDeath();
@@ -173,9 +173,10 @@ namespace BoomItApp
                             {
                                 ViewModel.OrderedUnits[index].Side = 0;
                                 IsKillState = false;
-                                if (PlayCounter > 18)
+                                if (PlayCounter >= 18)
                                 {
                                     IsMoveState = true;
+                                    CheckDeath();
                                 }
                             }
                         }
@@ -214,6 +215,17 @@ namespace BoomItApp
                 {
                     ViewModel.OrderedUnits = ViewModel.UnFireMove(ViewModel.OrderedUnits);
                     IsMoveState = false;
+                }
+            }
+            if (PlayCounter >= 18 && ViewModel.OrderedUnits.Count(x => x.Side == 3) == 0)
+            {
+                if (!ViewModel.EndMoveGame(2, ViewModel.OrderedUnits))
+                {
+                    DisplayAlert("Player 2 won!", "", "ok");
+                }
+                if (!ViewModel.EndMoveGame(1, ViewModel.OrderedUnits))
+                {
+                    DisplayAlert("Player 1 won!", "", "ok");
                 }
             }
         }
