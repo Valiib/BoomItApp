@@ -58,7 +58,14 @@ namespace BoomItApp.GameEngine
 
         }
 
+        public int GetIndexByPosition(object sender, ObservableCollection<T> matrixUnits)
+        {
+            var sqareData = (Model.Unit)(((BoxView)sender).BindingContext);
+            var index = matrixUnits.First(x => x.Position.x == sqareData.Position.x && x.Position.y == sqareData.Position.y &&
+                                                          x.Position.MatrixLevel == sqareData.Position.MatrixLevel).Index;
 
+            return index;
+        }
 
 
         public bool EndMoveGame(int side,ObservableCollection<T> matrixUnits)
