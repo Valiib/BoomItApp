@@ -11,12 +11,9 @@ namespace BoomItApp.GameEngine
         {
             ColorSelected = Color.Blue;
         }
-
         public int Index { get; set; }
         public abstract int Side { get; set; }
         public Position Position { get; set; }
-
-      
         public Color ColorSelected { get; set; }
     }
 }

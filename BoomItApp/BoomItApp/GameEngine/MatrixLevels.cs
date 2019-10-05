@@ -3,16 +3,23 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Design;
 using System.Linq;
-using System.Runtime.ExceptionServices;
+
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
+
 
 namespace BoomItApp.GameEngine
 {
     public class MatrixLevels<T> where T : Unit, new()
     {
+        public delegate void EndGameDelegate(object sender, EndGameEventArgs e);
+        public event EndGameDelegate EndGameEvent;
 
-        public static ObservableCollection<T> OrderedUnitsEngine { get; set; } = new ObservableCollection<T>();
+        public Unit MovingUnit { get; set; }
+        public bool IsMoveState { get; set; }
+        public bool IsKillState { get; set; }
+        public int PlayCounter { get; set; }
+        public bool IsFirstPlayer { get; set; }
+        public ObservableCollection<T> OrderedUnits { get; set; } = new ObservableCollection<T>();
 
         public static List<int> GamePattern = new List<int>()
         {
@@ -24,65 +31,6 @@ namespace BoomItApp.GameEngine
             0, 1, 0, 1, 0, 1, 0,
             1, 0, 0, 1, 0, 0, 1
         };
-
-        public T[,,] Matrix { get; set; }
-
-        public bool KillUnit(int side, int index, ObservableCollection<T> matrixUnits)
-        {
-            var killTriplets = true;
-            foreach (var unit in matrixUnits.Where(x => x.Side == side).ToList())
-            {
-                if (!CheckForTriplet(side, unit.Index, matrixUnits))
-                {
-                    killTriplets = false;
-                }
-            }
-
-            if (killTriplets)
-            {
-                if (matrixUnits[index].Side == side)
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                if (matrixUnits[index].Side == side && !CheckForTriplet(side, index, matrixUnits))
-                {
-                    return true;
-                }
-            }
-
-
-            return false;
-
-        }
-
-        public int GetIndexByPosition(object sender, ObservableCollection<T> matrixUnits)
-        {
-            var sqareData = (Model.Unit)(((BoxView)sender).BindingContext);
-            var index = matrixUnits.First(x => x.Position.x == sqareData.Position.x && x.Position.y == sqareData.Position.y &&
-                                                          x.Position.MatrixLevel == sqareData.Position.MatrixLevel).Index;
-
-            return index;
-        }
-
-
-        public bool EndMoveGame(int side,ObservableCollection<T> matrixUnits)
-        {
-
-            foreach (var unit in matrixUnits.Where(x => x.Side == side))
-            {
-                if (FireMoveOptions(side, unit.Index,matrixUnits).Count > 0)
-                {
-                    UnFireMove(matrixUnits);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-
         public bool CheckForTriplet(int side, int index, ObservableCollection<T> matrixUnits)
         {
             var position = matrixUnits[index].Position;
@@ -256,7 +204,6 @@ namespace BoomItApp.GameEngine
                         }
                     }
                 }
-
                 if (position.x == 2)
                 {
 
@@ -272,7 +219,6 @@ namespace BoomItApp.GameEngine
                         }
                     }
                 }
-
                 // 0 0 X Vertical
                 if (position.y == 0)
                 {
@@ -310,39 +256,6 @@ namespace BoomItApp.GameEngine
 
             return false;
         }
-
-        public T[,,] GenerateMatrix(T[,,] matrix)
-        {
-            var gameBoard = new T[3, 3, 3];
-            var countProcess = 0;
-
-
-            var x = 0;
-            var z = 0;
-            var y = 0;
-
-            foreach (var state in GamePattern)
-            {
-
-                if (state == 1)
-                {
-                    var orderItem = new T
-                        {Position = new Position {x = x, MatrixLevel = z, y = y}, Side = 0, Index = countProcess};
-                    OrderedUnitsEngine.Add(orderItem);
-                    gameBoard[x, z, y] = orderItem;
-                    var nextPattern = GiveNextPattern(x, z, y, countProcess);
-                    x = nextPattern[0];
-                    y = nextPattern[2];
-                    z = nextPattern[1];
-                    countProcess++;
-
-                }
-
-            }
-
-            return gameBoard;
-        }
-
         public static List<int> GiveNextPattern(int x, int z, int y, int countProcess)
         {
 
@@ -417,10 +330,235 @@ namespace BoomItApp.GameEngine
             }
 
 
-            return new List<int>() {x, z, y};
+            return new List<int>() { x, z, y };
         }
+        public void GenerateMatrix(T[,,] matrix)
+        {
+            var countProcess = 0;
+            var x = 0;
+            var z = 0;
+            var y = 0;
+            foreach (var state in GamePattern)
+            {
+                if (state == 1)
+                {
+                    var orderItem = new T
+                        { Position = new Position { x = x, MatrixLevel = z, y = y }, Side = 0, Index = countProcess };
+                    OrderedUnits.Add(orderItem);
+                    var nextPattern = GiveNextPattern(x, z, y, countProcess);
+                    x = nextPattern[0];
+                    y = nextPattern[2];
+                    z = nextPattern[1];
+                    countProcess++;
+                }
+            }
+        }
+        public int GetIndexByPosition(object sender, ObservableCollection<T> matrixUnits)
+        {
+            var sqareData = (Model.Unit)(((BoxView)sender).BindingContext);
+            var index = matrixUnits.First(x => x.Position.x == sqareData.Position.x && x.Position.y == sqareData.Position.y &&
+                                               x.Position.MatrixLevel == sqareData.Position.MatrixLevel).Index;
+
+            return index;
+        }
+        public void UserTurn(object sender, EventArgs e)
+        {
+            var index = GetIndexByPosition(sender, this.OrderedUnits);
+            if (!IsMoveState)
+            {
+                if (!IsKillState)
+                {
+                    if (PlayCounter < 18)
+                    {
+                        if (this.OrderedUnits[index].Side == 0)
+                        {
+                            if (IsFirstPlayer)
+                            {
+                                this.OrderedUnits[index].Side = 1;
+                                IsFirstPlayer = false;
+                            }
+                            else
+                            {
+                                this.OrderedUnits[index].Side = 2;
+                                IsFirstPlayer = true;
+                            }
+
+                            if (this.CheckForTriplet(this.OrderedUnits[index].Side, index,
+                                this.OrderedUnits))
+                            {
+                                IsKillState = true;
+                            }
+
+                            PlayCounter++;
+                        }
+                    }
+                    else
+                    {
+
+                        if (IsFirstPlayer)
+                        {
+                            if (this.OrderedUnits[index].Side == 1)
+                            {
+                                var check = this.FireMoveOptions(1, index, this.OrderedUnits);
+                                MovingUnit = this.OrderedUnits[index];
+                                IsMoveState = true;
+                            }
+                        }
+                        else
+                        {
+                            if (this.OrderedUnits[index].Side == 2)
+                            {
+                                this.FireMoveOptions(2, index, this.OrderedUnits);
+                                MovingUnit = this.OrderedUnits[index];
+                                IsMoveState = true;
+                            }
+                        }
+                    }
+
+                }
+                else
+                {
+                    if (IsFirstPlayer)
+                    {
+                        if (this.OrderedUnits[index].Side == 1)
+                        {
+                            if (this.KillUnit(1, index, this.OrderedUnits))
+                            {
+                                this.OrderedUnits[index].Side = 0;
+                                IsKillState = false;
+                                if (PlayCounter >= 18)
+                                {
+                                    IsMoveState = true;
+                                    if (CheckDeath() > 0)
+                                        OnEndGameEvent(new EndGameEventArgs(){SideWin = CheckDeath()});
+                                }
 
 
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (this.OrderedUnits[index].Side == 2)
+                        {
+                            if (this.KillUnit(2, index, this.OrderedUnits))
+                            {
+                                this.OrderedUnits[index].Side = 0;
+                                IsKillState = false;
+                                if (PlayCounter >= 18)
+                                {
+                                    IsMoveState = true;
+                                    if (CheckDeath() > 0)
+                                        OnEndGameEvent(new EndGameEventArgs() { SideWin = CheckDeath() });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (this.OrderedUnits[index].Side == 3)
+                {
+                    var oldSide = this.OrderedUnits[MovingUnit.Index].Side;
+                    this.OrderedUnits[MovingUnit.Index].Side = 0;
+                    this.OrderedUnits[index].Side = oldSide;
+                    IsMoveState = false;
+
+
+                    if (IsFirstPlayer)
+                    {
+                        IsFirstPlayer = false;
+                    }
+                    else
+                    {
+                        IsFirstPlayer = true;
+                    }
+
+
+
+                    if (this.CheckForTriplet(this.OrderedUnits[index].Side, index,
+                        this.OrderedUnits))
+                    {
+                        IsKillState = true;
+                    }
+                    this.OrderedUnits = this.UnFireMove(this.OrderedUnits);
+                }
+                else
+                {
+                    this.OrderedUnits = this.UnFireMove(this.OrderedUnits);
+                    IsMoveState = false;
+                }
+            }
+            if (PlayCounter >= 18 && this.OrderedUnits.Count(x => x.Side == 3) == 0)
+            {
+                if (!this.EndMoveGame(2, this.OrderedUnits))
+                {
+                    OnEndGameEvent(new EndGameEventArgs() { SideWin = 2 });
+                }
+                if (!this.EndMoveGame(1, this.OrderedUnits))
+                {
+                    OnEndGameEvent(new EndGameEventArgs() { SideWin = 1 });
+                }
+            }
+        }
+        public bool KillUnit(int side, int index, ObservableCollection<T> matrixUnits)
+        {
+            var killTriplets = true;
+            foreach (var unit in matrixUnits.Where(x => x.Side == side).ToList())
+            {
+                if (!CheckForTriplet(side, unit.Index, matrixUnits))
+                {
+                    killTriplets = false;
+                }
+            }
+
+            if (killTriplets)
+            {
+                if (matrixUnits[index].Side == side)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (matrixUnits[index].Side == side && !CheckForTriplet(side, index, matrixUnits))
+                {
+                    return true;
+                }
+            }
+
+
+            return false;
+
+        }
+        private int CheckDeath()
+        {
+            if (this.OrderedUnits.Count(x => x.Side == 1) <= 2)
+            {
+                return 1;
+            }
+
+            if (this.OrderedUnits.Count(x => x.Side == 2) <= 2)
+            {
+                return 2;
+            }
+
+            return 0;
+        }
+        public bool EndMoveGame(int side,ObservableCollection<T> matrixUnits)
+        {
+
+            foreach (var unit in matrixUnits.Where(x => x.Side == side))
+            {
+                if (FireMoveOptions(side, unit.Index,matrixUnits).Count > 0)
+                {
+                    UnFireMove(matrixUnits);
+                    return true;
+                }
+            }
+            return false;
+        }
         public ObservableCollection<T> UnFireMove(ObservableCollection<T> matrixUnits)
         {
             var resultItems = new ObservableCollection<T>();
@@ -435,7 +573,6 @@ namespace BoomItApp.GameEngine
 
             return resultItems;
         }
-
         public ObservableCollection<T> FireMoveOptions(int p0, int index, ObservableCollection<T> matrixUnits)
         {
             var changedOccurences = new ObservableCollection<T>();
@@ -463,7 +600,6 @@ namespace BoomItApp.GameEngine
                 changedOccurences.Add(checkUnit);
             }
 
-
             checkUnit = matrixUnits.FirstOrDefault(unit =>
                 unit.Position.x == currentPosition.x - 1 && unit.Position.y == currentPosition.y &&
                 unit.Position.MatrixLevel == currentPosition.MatrixLevel);
@@ -472,7 +608,6 @@ namespace BoomItApp.GameEngine
                 checkUnit.Side = 3;
                 changedOccurences.Add(checkUnit);
             }
-
 
             checkUnit = matrixUnits.FirstOrDefault(unit =>
                 unit.Position.x == currentPosition.x && unit.Position.y == currentPosition.y + 1 &&
@@ -492,7 +627,6 @@ namespace BoomItApp.GameEngine
                 checkUnit.Side = 3;
                 changedOccurences.Add(checkUnit);
             }
-
 
             if (currentPosition.x == 1 || currentPosition.y == 1)
             {
@@ -515,8 +649,17 @@ namespace BoomItApp.GameEngine
                     changedOccurences.Add(checkUnit);
                 }
             }
-
             return changedOccurences;
         }
+
+        protected virtual void OnEndGameEvent(EndGameEventArgs e)
+        {
+            EndGameEvent?.Invoke(this, e);
+        }
+    }
+
+    public class EndGameEventArgs
+    {
+        public int SideWin { get; set; }
     }
 }
