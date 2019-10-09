@@ -1,5 +1,7 @@
 # BoomItApp
 Old game from my childhood.
+Nuget Repo url : [link](https://www.nuget.org/packages/BoomPuzzle/)
+
 ## Game Description
 You have 3 big squares that are inside each other and they are connected between each other.
 You should make triplet to win the game.
